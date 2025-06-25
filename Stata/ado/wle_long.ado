@@ -4,8 +4,10 @@
 * INPUT : 
 *	thres : Threshold parameters estimates as Matrix (J,M_J-1)
 *	resp  : String indicates response variables
-*	group : String indicates the variable group name
-*	beta  : Real group effects estimation
+*	time  : variable time name
+*	U     : Random effect estimation for each individual
+*	group : variable group name
+*	beta  : column vector 1 then estimations of latent regression coefficients 
 *
 *OUTPUT :
 *	New variable named prediction with weighted likelihood estimates 
