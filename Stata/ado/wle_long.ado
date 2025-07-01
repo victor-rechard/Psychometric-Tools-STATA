@@ -1,26 +1,24 @@
-*! version 1.1 25 June 2025
+*! version 2.1 18 June 2025
 *! Victor Rechard
 ***************
 * INPUT : 
 *	thres : Threshold parameters estimates as Matrix (J,M_J-1)
 *	resp  : String indicates response variables
-*	time  : variable time name
-*	U     : Random effect estimation for each individual
-*	group : variable group name
-*	beta  : column vector 1 then estimations of latent regression coefficients 
+*	group : String indicates the variable group name
+*	beta  : Real group effects estimation
 *
 *OUTPUT :
 *	New variable named prediction with weighted likelihood estimates 
 ***************
 
 
-program define wle_long ,rclass
+program define wle_long_bis ,rclass
 version 18
 args thres resp time group U beta
 
 
  mata: prediction=wle("`thres'","`resp'","`time'","`group'","`U'","`beta'")
-qui getmata prediction
+qui getmata prediction_bis,replace
 end
 
 
@@ -41,9 +39,9 @@ real scalar pcmformula(real scalar theta,real scalar ajust,real matrix thres,  r
 	}
 	denomin=0
 	for(i=0;i<=cols(thres);i++){
-		denomin=denomin+exp(i*theta+ajust-DM[j,i+1])
+		denomin=denomin+exp(i*(theta+ajust)-DM[j,i+1])
 	}
-	return(exp(resp*theta+ajust-DM[j,resp+1])/denomin)
+	return(exp(resp*(theta+ajust)-DM[j,resp+1])/denomin)
 }
 
 
@@ -94,7 +92,7 @@ real scalar lnv(real scalar theta,real scalar ajust, real matrix thres,real rowv
 		}
 		denomin=0
 		for(i=0;i<=cols(thres);i++){
-		denomin=denomin+exp(i*theta+ajust-DM[j,i+1])
+		denomin=denomin+exp(i*(theta+ajust)-DM[j,i+1])
 	}
 	if (resp[j]!=.){
 	lastterm=lastterm+ln(denomin)
@@ -103,7 +101,7 @@ real scalar lnv(real scalar theta,real scalar ajust, real matrix thres,real rowv
 	
 	
 	
-	res=0.5*ln(testinfo(theta,ajust,thres))+theta*sum(resp)-centralterm-lastterm+rows(thres)*ajust
+	res=0.5*ln(testinfo(theta,ajust,thres))+(theta+ajust)*sum(resp)-centralterm-lastterm
 
 	return(res)
 	
@@ -150,7 +148,7 @@ real  matrix wle(string name_thres,  string names_item_res,  string name_group, 
 	optimize_init_argument(S,2,R)
 	optimize_init_argument(S,3,Ajust[i])
 	optimize_init_tracelevel(S,"none")
-	res[i]=optimize(S)
+	res[i]=optimize(S)+Ajust[i]
 	}
 	else {
 		res[i]=.
