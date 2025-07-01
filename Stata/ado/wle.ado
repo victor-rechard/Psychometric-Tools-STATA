@@ -16,12 +16,9 @@ program define wle ,rclass
 version 18
 args thres resp group beta
 
-
-
-
  mata: prediction=wle("`thres'","`resp'","`group'",`beta')
 
-qui getmata prediction
+qui getmata prediction,replace
 end
 
 
@@ -42,9 +39,9 @@ real scalar pcmformula(real scalar theta,real scalar group, real scalar beta,rea
 	}
 	denomin=0
 	for(i=0;i<=cols(thres);i++){
-		denomin=denomin+exp(i*theta+(group*beta)-DM[j,i+1])
+		denomin=denomin+exp(i*(theta+group*beta)-DM[j,i+1])
 	}
-	return(exp(resp*theta+(group*beta)-DM[j,resp+1])/denomin)
+	return(exp(resp*(theta+group*beta)-DM[j,resp+1])/denomin)
 }
 
 
@@ -95,7 +92,7 @@ real scalar lnv(real scalar theta,real scalar group,real scalar beta, real matri
 		}
 		denomin=0
 		for(i=0;i<=cols(thres);i++){
-		denomin=denomin+exp(i*theta+(group*beta)-DM[j,i+1])
+		denomin=denomin+exp(i*(theta+group*beta)-DM[j,i+1])
 	}
 	if (resp[j]!=.){
 	lastterm=lastterm+ln(denomin)
@@ -104,7 +101,7 @@ real scalar lnv(real scalar theta,real scalar group,real scalar beta, real matri
 	
 	
 	
-	res=0.5*ln(testinfo(theta,group,beta,thres))+theta*sum(resp)-centralterm-lastterm
+	res=0.5*ln(testinfo(theta,group,beta,thres))+(theta+group*beta)*sum(resp)-centralterm-lastterm
 
 	return(res)
 	
@@ -146,7 +143,7 @@ real  matrix wle(string name_thres,    string names_item_res,   string name_grou
 	optimize_init_argument(S,3,G)
 	optimize_init_argument(S,4,beta)
 	optimize_init_tracelevel(S,"none")
-	res[i]=optimize(S)
+	res[i]=optimize(S)+G*beta
 	}
 	else {
 		res[i]=.
